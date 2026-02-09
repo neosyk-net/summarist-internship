@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getSelected } from "@/lib/selected";
 import Link from "next/link";
+import BookCover from "../BookCover";
 
 type Book = any; // we’ll type this properly after we see the shape
 
@@ -105,10 +106,10 @@ export default function SelectedList() {
 
               {/* Center: book image */}
               <div className="flex-none">
-                <img
+                <BookCover
                   src={b.imageLink}
                   alt={b.title}
-                  className="h-28 w-20 object-cover"
+                  className="h-56 w-full object-cover"
                 />
               </div>
 

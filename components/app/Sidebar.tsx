@@ -33,28 +33,30 @@ export default function Sidebar() {
   const dispatch = useAppDispatch();
 
   return (
-    <aside className="relative z-50 flex h-screen w-[240px] flex-col border-r bg-white px-4 py-5">
-      {/* Logo */}
-      <Link href="/" className="flex h-16 items-center px-3 pb-6">
-        <Image
-          src="/assets/logo.png"
-          alt="Summarist"
-          width={160}
-          height={64}
-          priority
-          className="h-8.5 w-auto"
-        />
-      </Link>
+    <aside className="flex h-full w-full flex-col bg-white px-2 pb-5">
+      {/* LOGO HEADER (matches Topbar height + border) */}
+      <div className="flex h-16 items-center">
+        <Link href="/" className="flex items-center px-3">
+          <Image
+            src="/assets/logo.png"
+            alt="Summarist"
+            width={160}
+            height={64}
+            priority
+            className="h-8 w-auto"
+          />
+        </Link>
+      </div>
 
       {/* TOP NAV */}
-      <nav className="mt-8 space-y-3">
+      <nav className="mt-6 space-y-3">
         {topNav.map((item) => {
           const Icon = item.icon;
           const active =
             !item.disabled && item.href !== "#" && pathname === item.href;
 
           const base =
-            "flex items-center gap-4 rounded px-4 py-2 text-base font-medium transition";
+            "flex items-center gap-4 rounded px-3 py-2 text-base font-medium transition";
           const activeStyles =
             "bg-[#f1f6f4] text-[#032b41] border-l-4 border-[#2bd97c]";
           const inactiveStyles = "text-[#032b41]/80 hover:bg-[#f1f6f4]";

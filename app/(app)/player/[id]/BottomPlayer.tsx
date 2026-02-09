@@ -1,5 +1,6 @@
 "use client";
 
+import BookCover from "@/components/BookCover";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
@@ -76,14 +77,15 @@ export default function BottomPlayer({
   };
 
   return (
-<div className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-black/10 bg-slate-950 text-white md:left-[240px]">
+    <div className="fixed bottom-0 left-[240px] right-0 z-[9999] border-t border-black/10 bg-slate-950 text-white">
       <div className="mx-auto flex max-w-[1200px] items-center gap-4 px-6 py-3">
         <div className="flex min-w-[260px] items-center gap-3">
-          <img
+          <BookCover
             src={imageLink}
             alt={title}
-            className="h-12 w-12 rounded object-cover bg-white/10"
+            className="h-12 w-12 rounded object-cover"
           />
+
           <div className="leading-tight">
             <div className="text-sm font-semibold line-clamp-1">{title}</div>
             <div className="text-xs text-white/70 line-clamp-1">{author}</div>

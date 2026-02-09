@@ -4,13 +4,16 @@ import Topbar from "@/components/app/Topbar";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-white">
-      <aside className="sticky top-0 h-screen w-64">
+      {/* Sidebar column */}
+      <aside className="sticky top-0 h-screen w-[240px] border-r bg-white">
         <Sidebar />
       </aside>
 
+      {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1">
+
+        <main className="flex-1 pb-24">
           <div className="mx-auto max-w-6xl px-6 py-10">{children}</div>
         </main>
       </div>

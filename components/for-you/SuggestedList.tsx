@@ -5,6 +5,7 @@ import { getSuggested } from "@/lib/suggested";
 import DurationBadge from "../DurationBadge";
 import { ClockIcon, StarIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import BookCover from "../BookCover";
 
 type Book = {
   id: string;
@@ -99,7 +100,7 @@ export default function SuggestedList() {
                     </span>
                   )}
 
-                  <img
+                  <BookCover
                     src={b.imageLink}
                     alt={b.title}
                     className="h-56 w-full object-cover"

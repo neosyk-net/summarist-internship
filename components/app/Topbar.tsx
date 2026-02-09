@@ -3,7 +3,7 @@ import { FiSearch } from "react-icons/fi";
 
 export default function Topbar() {
   return (
-    <header className="sticky top-0 z-40 h-16 border-b bg-white">
+    <header className="sticky top-0 z-40 h-16 border-b border-black/10 bg-white">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-end px-6">
         <div className="relative w-full max-w-md">
           <input
@@ -19,6 +19,7 @@ export default function Topbar() {
           </button>
         </div>
       </div>
+      <div className="h-px w-full bg-gray-200" />
     </header>
   );
 }

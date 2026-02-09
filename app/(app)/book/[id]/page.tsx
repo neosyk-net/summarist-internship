@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import DurationBadge from "@/components/DurationBadge";
 import Link from "next/link";
+import BookCover from "@/components/BookCover";
 
 type Book = {
   id: string;
@@ -121,10 +122,10 @@ export default async function BookPage({
           {/* Right (cover) */}
           <div className="w-[320px]">
             <div className="flex justify-end">
-              <img
+              <BookCover
                 src={book.imageLink}
                 alt={book.title}
-                className="h-[260px] w-[200px] object-cover"
+                className="h-[420px] w-[320px] object-cover rounded-md"
               />
             </div>
           </div>
