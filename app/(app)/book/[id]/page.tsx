@@ -100,7 +100,6 @@ export default async function BookPage({
                 <BookOpenIcon className="h-5 w-5" />
                 <span>Read</span>
               </Link>
-
               {/* Listen */}
               <Link
                 href={`/player/${book.id}`}

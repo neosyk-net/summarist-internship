@@ -76,7 +76,7 @@ export default function BottomPlayer({
   };
 
   return (
-    <div className="fixed bottom-0 left-[240px] right-0 border-t border-black/10 bg-slate-950 text-white">
+<div className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-black/10 bg-slate-950 text-white md:left-[240px]">
       <div className="mx-auto flex max-w-[1200px] items-center gap-4 px-6 py-3">
         <div className="flex min-w-[260px] items-center gap-3">
           <img
