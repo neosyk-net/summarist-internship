@@ -4,8 +4,8 @@ import { FiSearch } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getRecommended } from "@/lib/recommended";
-import { getSelected } from "@/lib/selected";
+import { searchBooks } from "@/lib/search";
+
 
 type Book = {
   id: string;
@@ -15,55 +15,34 @@ type Book = {
 };
 
 export default function Topbar() {
-  const [q, setQ] = useState("");
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(false);
+const [q, setQ] = useState("");
+const [results, setResults] = useState<Book[]>([]);
+const [loading, setLoading] = useState(false);
 
-  const MIN_SKELETON_TIME = 600; // ms
+useEffect(() => {
+  const query = q.trim();
+  if (!query) {
+    setResults([]);
+    setLoading(false);
+    return;
+  }
 
-  useEffect(() => {
-    let mounted = true;
+  setLoading(true);
 
-    (async () => {
-      setLoading(true);
-      const start = Date.now();
+  const t = setTimeout(async () => {
+    try {
+      const data = await searchBooks(query);
+      setResults(data);
+    } catch (e) {
+      console.error("Search failed:", e);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, 250); // debounce
 
-      try {
-        const [recommended, selected] = await Promise.all([
-          getRecommended(),
-          getSelected(),
-        ]);
-
-        const map = new Map<string, Book>();
-        [...recommended, ...selected].forEach((b) => map.set(b.id, b));
-
-        if (mounted) setBooks(Array.from(map.values()));
-      } finally {
-        const elapsed = Date.now() - start;
-        const remaining = Math.max(0, MIN_SKELETON_TIME - elapsed);
-
-        setTimeout(() => {
-          if (mounted) setLoading(false);
-        }, remaining);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const results = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return [];
-    return books
-      .filter(
-        (b) =>
-          b.title.toLowerCase().includes(query) ||
-          b.author.toLowerCase().includes(query),
-      )
-      .slice(0, 8);
-  }, [q, books]);
+  return () => clearTimeout(t);
+}, [q]);
 
   return (
     <header className="sticky top-0 z-40 h-16 border-b border-black/10 bg-white">
