@@ -1,5 +1,9 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { getBookById } from "@/lib/book";
-import BottomPlayer from "./BottomPlayer";
+import SyncPlayer from "../SyncPlayer";
+import type { PlayerBook } from "../PlayerContext";
 
 type Book = {
   id: string;
@@ -16,7 +20,19 @@ export default async function PlayerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  // intentional delay so /player/loading.tsx shows
+  await new Promise((r) => setTimeout(r, 400));
+
   const book: Book = await getBookById(id);
+
+  const playerBook: PlayerBook = {
+    id: book.id,
+    title: book.title,
+    author: book.author,
+    imageLink: book.imageLink,
+    audioLink: book.audioLink,
+  };
 
   return (
     <div className="min-h-screen bg-white text-black pb-24">
@@ -33,12 +49,9 @@ export default async function PlayerPage({
           <p className="whitespace-pre-line">{book.summary}</p>
         </div>
       </div>
-      <BottomPlayer
-        title={book.title}
-        author={book.author}
-        imageLink={book.imageLink}
-        audioLink={book.audioLink}
-      />
+
+      {/* feeds the persistent bottom player (in /player/layout.tsx) */}
+      <SyncPlayer book={playerBook} />
     </div>
   );
 }
