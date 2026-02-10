@@ -1,6 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type User = { uid: string; email: string | null } | null;
+type User = {
+  uid: string;
+  email: string | null;
+  isAnonymous: boolean;
+} | null;
 
 type AuthState = {
   user: User;
@@ -31,7 +35,7 @@ const authSlice = createSlice({
     },
     setSubscription(
       state,
-      action: PayloadAction<{ isSubscribed: boolean; plan: AuthState["plan"] }>
+      action: PayloadAction<{ isSubscribed: boolean; plan: AuthState["plan"] }>,
     ) {
       state.isSubscribed = action.payload.isSubscribed;
       state.plan = action.payload.plan;
@@ -44,7 +48,12 @@ const authSlice = createSlice({
   },
 });
 
-export const { openAuthModal, closeAuthModal, setUser, setSubscription, logout } =
-  authSlice.actions;
+export const {
+  openAuthModal,
+  closeAuthModal,
+  setUser,
+  setSubscription,
+  logout,
+} = authSlice.actions;
 
 export default authSlice.reducer;

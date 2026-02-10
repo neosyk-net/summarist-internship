@@ -13,7 +13,13 @@ function AuthListener({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        dispatch(setUser({ uid: user.uid, email: user.email }));
+        dispatch(
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            isAnonymous: user.isAnonymous,
+          }),
+        );
       } else {
         dispatch(setUser(null));
       }
