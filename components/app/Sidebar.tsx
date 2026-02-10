@@ -18,7 +18,7 @@ import {
 
 const topNav = [
   { href: "/for-you", label: "For you", icon: FiHome },
-  { href: "/library", label: "My Library", icon: FiBookmark },
+  { href: "/library", label: "My Library", icon: FiBookmark, disabled: true },
   { href: "#", label: "Highlights", icon: FiEdit3, disabled: true },
   { href: "#", label: "Search", icon: FiSearch, disabled: true },
 ];
