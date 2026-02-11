@@ -1,12 +1,27 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("Missing STRIPE_SECRET_KEY env var");
+  }
 
+return new Stripe(key);
+}
+
+type Plan = "monthly" | "yearly";
 
 export async function POST(req: Request) {
   try {
-    const { plan } = await req.json(); // "monthly" | "yearly"
+    const stripe = getStripe();
+
+    const body = await req.json();
+    const plan: Plan = body?.plan;
+
+    if (plan !== "monthly" && plan !== "yearly") {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
 
     const priceId =
       plan === "monthly"
@@ -15,7 +30,12 @@ export async function POST(req: Request) {
 
     if (!priceId) {
       return NextResponse.json(
-        { error: "Missing Stripe price id" },
+        {
+          error:
+            plan === "monthly"
+              ? "Missing STRIPE_PRICE_PREMIUM_MONTHLY env var"
+              : "Missing STRIPE_PRICE_PREMIUM_PLUS_YEARLY env var",
+        },
         { status: 400 }
       );
     }
