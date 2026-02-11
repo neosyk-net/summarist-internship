@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { openAuthModal } from "@/store/slices/authSlice";
+import { logOut } from "@/lib/auth";
 import Image from "next/image";
 
 import {
@@ -13,7 +14,8 @@ import {
   FiSearch,
   FiSettings,
   FiHelpCircle,
-  FiLogOut,
+  FiUserPlus,
+  FiArrowLeftCircle,
 } from "react-icons/fi";
 
 const topNav = [
@@ -31,6 +33,7 @@ const bottomNav = [
 export default function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const user = useAppSelector((s) => s.auth.user);
 
   return (
     <aside className="flex h-full w-full flex-col bg-white px-2 pb-5">
@@ -118,11 +121,24 @@ export default function Sidebar() {
         })}
 
         <button
-          onClick={() => dispatch(openAuthModal())}
+          onClick={async () => {
+            // If no user OR guest user -> open auth modal
+            if (!user || user.isAnonymous) {
+              dispatch(openAuthModal());
+              return;
+            }
+
+            // Real user -> logout
+            await logOut();
+          }}
           className="flex w-full items-center gap-3 rounded px-3 py-2 text-base font-medium text-[#032b41]/80 hover:bg-[#f1f6f4]"
         >
-          <FiLogOut size={18} />
-          Logout
+          {!user || user.isAnonymous ? (
+            <FiUserPlus size={18} />
+          ) : (
+            <FiArrowLeftCircle size={18} />
+          )}
+          {!user || user.isAnonymous ? "Log in" : "Log out"}
         </button>
       </div>
     </aside>

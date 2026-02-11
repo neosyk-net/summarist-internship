@@ -5,13 +5,51 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeAuthModal } from "@/store/slices/authSlice";
 import { FaUser } from "react-icons/fa";
 import Image from "next/image";
+import { guestSignIn, signIn, signUp } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export default function AuthModal() {
   const open = useAppSelector((s) => s.auth.authModalOpen);
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"login" | "register">("login");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleEmailAuth() {
+    setError(null);
+
+    if (!email || !password) {
+      setError("Please enter email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      if (mode === "register") {
+        await signUp(email, password);
+      } else {
+        await signIn(email, password);
+      }
+      router.push("/for-you");
+      dispatch(closeAuthModal()); // user set by onAuthStateChanged listener
+    } catch (e: any) {
+      setError(e?.message ?? "Auth failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggleMode() {
+    setError(null);
+    setPassword("");
+    setMode((m) => (m === "login" ? "register" : "login"));
+  }
 
   if (!open) return null;
 
@@ -34,14 +72,29 @@ export default function AuthModal() {
         </button>
 
         <div className="p-6">
-          <h2 className="text-center text-xl text-[#032b41] text-lg font-bold mb-4">
-            Log in to Summarist
+          <h2 className="mb-4 text-center text-lg font-bold text-[#032b41]">
+            {mode === "login"
+              ? "Log in to Summarist"
+              : "Create your Summarist account"}
           </h2>
 
           {/* Guest */}
           <button
-            className="relative w-full rounded bg-[#2f4f8f] py-3 text-white font-medium hover:opacity-95"
-            onClick={() => alert("Guest login later (Firebase step)")}
+            className="relative w-full rounded bg-[#2f4f8f] py-3 font-medium text-white hover:opacity-95 disabled:opacity-60"
+            onClick={async () => {
+              setError(null);
+              try {
+                setLoading(true);
+                await guestSignIn();
+                router.push("/for-you");
+                dispatch(closeAuthModal());
+              } catch (e: any) {
+                setError(e?.message ?? "Guest login failed.");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
           >
             <span className="absolute left-4 top-1/2 -translate-y-1/2">
               <FaUser size={18} />
@@ -58,8 +111,9 @@ export default function AuthModal() {
 
           {/* Google */}
           <button
-            className="relative w-full rounded bg-[#3b82f6] py-3 text-white font-medium hover:opacity-95"
+            className="relative w-full rounded bg-[#3b82f6] py-3 font-medium text-white hover:opacity-95 disabled:opacity-60"
             onClick={() => alert("Google login later (Firebase step)")}
+            disabled={loading}
           >
             <span className="absolute left-3 top-1/2 -translate-y-1/2 rounded bg-white p-1">
               <Image
@@ -82,10 +136,11 @@ export default function AuthModal() {
           {/* Inputs */}
           <div className="space-y-3">
             <input
-              className="w-full rounded border border-gray-300 px-3 text-gray-900 placeholder-gray-400 py-2 outline-none focus:border-gray-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-gray-500"
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
             <input
               className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-gray-500"
@@ -93,21 +148,35 @@ export default function AuthModal() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
           </div>
 
-          {/* Login */}
+          {/* Error */}
+          {error && (
+            <p className="mt-3 text-center text-sm text-red-600">{error}</p>
+          )}
+
+          {/* Main action */}
           <button
-            className="mt-4 w-full rounded bg-[#2bd97c] py-3 font-medium text-[#032b41] hover:bg-[#20ba68]"
-            onClick={() => alert("Email/password later (Firebase step)")}
+            className="mt-4 w-full rounded bg-[#2bd97c] py-3 font-medium text-[#032b41] hover:bg-[#20ba68] disabled:opacity-60"
+            onClick={handleEmailAuth}
+            disabled={loading}
           >
-            Login
+            {loading
+              ? mode === "register"
+                ? "Creating account..."
+                : "Logging in..."
+              : mode === "register"
+                ? "Create account"
+                : "Login"}
           </button>
 
           <div className="mt-3 text-center text-sm">
             <button
-              className="text-blue-500 hover:underline"
+              className="text-blue-500 hover:underline disabled:opacity-60"
               onClick={() => alert("Forgot password later (optional)")}
+              disabled={loading}
             >
               Forgot your password?
             </button>
@@ -116,10 +185,13 @@ export default function AuthModal() {
 
         <div className="border-t bg-gray-50 p-4 text-center text-sm">
           <button
-            className="text-blue-500 hover:underline"
-            onClick={() => alert("Switch to register later")}
+            className="text-blue-500 hover:underline disabled:opacity-60"
+            onClick={toggleMode}
+            disabled={loading}
           >
-            Don&apos;t have an account?
+            {mode === "login"
+              ? "Don't have an account?"
+              : "Already have an account?"}
           </button>
         </div>
       </div>
