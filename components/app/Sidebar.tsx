@@ -39,7 +39,7 @@ export default function Sidebar() {
     <aside className="flex h-full w-full flex-col bg-white px-2 pb-5">
       {/* LOGO HEADER (matches Topbar height + border) */}
       <div className="flex h-16 items-center">
-        <Link href="/" className="flex items-center px-3">
+        <Link href="/for-you" className="flex items-center px-3">
           <Image
             src="/assets/logo.png"
             alt="Summarist"
@@ -122,23 +122,19 @@ export default function Sidebar() {
 
         <button
           onClick={async () => {
-            // If no user OR guest user -> open auth modal
-            if (!user || user.isAnonymous) {
+            // Logged out -> open auth modal
+            if (!user) {
               dispatch(openAuthModal());
               return;
             }
 
-            // Real user -> logout
+            // Logged in (guest OR real user) -> logout
             await logOut();
           }}
           className="flex w-full items-center gap-3 rounded px-3 py-2 text-base font-medium text-[#032b41]/80 hover:bg-[#f1f6f4]"
         >
-          {!user || user.isAnonymous ? (
-            <FiUserPlus size={18} />
-          ) : (
-            <FiArrowLeftCircle size={18} />
-          )}
-          {!user || user.isAnonymous ? "Log in" : "Log out"}
+          {!user ? <FiUserPlus size={18} /> : <FiArrowLeftCircle size={18} />}
+          {!user ? "Log in" : "Log out"}
         </button>
       </div>
     </aside>

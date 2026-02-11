@@ -11,6 +11,7 @@ type AuthState = {
   authModalOpen: boolean;
   isSubscribed: boolean;
   plan: "basic" | "premium" | "premium-plus";
+  authChecked: boolean;
 };
 
 const initialState: AuthState = {
@@ -18,6 +19,7 @@ const initialState: AuthState = {
   authModalOpen: false,
   isSubscribed: false,
   plan: "basic",
+  authChecked: false,
 };
 
 const authSlice = createSlice({
@@ -45,6 +47,9 @@ const authSlice = createSlice({
       state.isSubscribed = false;
       state.plan = "basic";
     },
+    setAuthChecked(state, action: PayloadAction<boolean>) {
+      state.authChecked = action.payload;
+    },
   },
 });
 
@@ -54,6 +59,7 @@ export const {
   setUser,
   setSubscription,
   logout,
+  setAuthChecked,
 } = authSlice.actions;
 
 export default authSlice.reducer;

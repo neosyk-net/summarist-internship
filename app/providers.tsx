@@ -5,24 +5,23 @@ import { store } from "@/store/store";
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { setUser } from "@/store/slices/authSlice";
+import { setUser, setAuthChecked } from "@/store/slices/authSlice";
 
 function AuthListener({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        dispatch(
-          setUser({
-            uid: user.uid,
-            email: user.email,
-            isAnonymous: user.isAnonymous,
-          }),
-        );
-      } else {
-        dispatch(setUser(null));
-      }
+      dispatch(
+        setUser(
+          user
+            ? { uid: user.uid, email: user.email, isAnonymous: user.isAnonymous }
+            : null
+        )
+      );
+
+      // prevents logged-out flash on refresh
+      dispatch(setAuthChecked(true));
     });
 
     return () => unsub();

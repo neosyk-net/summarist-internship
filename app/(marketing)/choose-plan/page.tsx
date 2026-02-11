@@ -1,8 +1,15 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import HeroImg from "@/public/assets/pricing-top.png";
 import { FileText, Sprout, Handshake } from "lucide-react";
 import FaqAccordian from "@/components/marketing/FaqAccordian";
 import Footer from "@/components/marketing/Footer";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setSubscription, openAuthModal } from "@/store/slices/authSlice";
+import { useEffect } from "react";
 
 const faqs = [
   {
@@ -24,12 +31,70 @@ const faqs = [
 ];
 
 export default function ChoosePlanPage() {
+  const [selected, setSelected] = useState<"yearly" | "monthly">("yearly");
+  const [loading, setLoading] = useState(false);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((s) => s.auth.user);
+
+  const selectedCard = "border-[#2bd97c] bg-[#f4faf7]";
+  const unselectedCard = "border-black/20 bg-[#f4faf7] hover:bg-black/[0.02]";
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const plan = searchParams.get("plan");
+
+    if (success === "1" && plan) {
+      dispatch(
+        setSubscription({
+          isSubscribed: true,
+          plan: plan === "yearly" ? "premium-plus" : "premium",
+        }),
+      );
+
+      router.replace("/for-you");
+    }
+  }, [searchParams, dispatch, router]);
+
+  async function handleCheckout() {
+    // Block checkout unless real user (not guest)
+    if (!user || user.isAnonymous) {
+      dispatch(openAuthModal());
+      return;
+    }
+
+    if (loading) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selected }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data?.error ?? "Checkout failed");
+      if (!data?.url) throw new Error("No checkout URL returned");
+
+      window.location.href = data.url;
+    } catch (e: any) {
+      alert(e?.message ?? "Checkout failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="bg-white text-[#032b41]">
       {/* HERO */}
       <section className="relative min-h-[760px] overflow-hidden bg-[#032b41] text-white">
         {/* White base under the curve */}
-<div className="pointer-events-none absolute bottom-0 left-0 h-[100px] w-full bg-white" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-[100px] w-full bg-white " />
 
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 text-center">
           <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-tight md:text-5xl">
@@ -43,7 +108,7 @@ export default function ChoosePlanPage() {
           </p>
 
           {/* Curved image container (simple + stable) */}
-          <div className="mx-auto mt-10 w-full max-w-[420px] overflow-hidden rounded-t-[220px] bg-white pt-10">
+          <div className="mx-auto mt-10 w-full max-w-[430px] overflow-hidden rounded-t-[220px] bg-white pt-10">
             <Image
               src={HeroImg}
               alt="Choose plan hero"
@@ -91,7 +156,7 @@ export default function ChoosePlanPage() {
         </div>
       </section>
 
-      {/* PLANS + CTA (single aligned block) */}
+      {/* PLANS + CTA */}
       <section className="bg-white">
         <div className="mx-auto max-w-3xl px-6 pb-16 text-center">
           <h2 className="mb-8 text-3xl font-extrabold text-[#032b41]">
@@ -100,9 +165,19 @@ export default function ChoosePlanPage() {
 
           <div className="space-y-6">
             {/* Yearly */}
-            <div className="flex cursor-pointer items-start gap-4 rounded-lg border-2 border-[#2bd97c] bg-[#f4faf7] p-6 text-left">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelected("yearly")}
+              onKeyDown={(e) => e.key === "Enter" && setSelected("yearly")}
+              className={`flex cursor-pointer items-start gap-4 rounded-lg border-2 p-6 text-left transition ${
+                selected === "yearly" ? selectedCard : unselectedCard
+              }`}
+            >
               <div className="mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-black">
-                <div className="h-2 w-2 rounded-full bg-black" />
+                {selected === "yearly" && (
+                  <div className="h-2 w-2 rounded-full bg-black" />
+                )}
               </div>
 
               <div>
@@ -122,8 +197,20 @@ export default function ChoosePlanPage() {
             </div>
 
             {/* Monthly */}
-            <div className="flex cursor-pointer items-start gap-4 rounded-lg border-2 border-black/20 bg-[#f4faf7] p-6 text-left">
-              <div className="mt-1 h-5 w-5 rounded-full border-2 border-black" />
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelected("monthly")}
+              onKeyDown={(e) => e.key === "Enter" && setSelected("monthly")}
+              className={`flex cursor-pointer items-start gap-4 rounded-lg border-2 p-6 text-left transition ${
+                selected === "monthly" ? selectedCard : unselectedCard
+              }`}
+            >
+              <div className="mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-black">
+                {selected === "monthly" && (
+                  <div className="h-2 w-2 rounded-full bg-black" />
+                )}
+              </div>
 
               <div>
                 <p className="font-semibold">Premium Monthly</p>
@@ -133,8 +220,16 @@ export default function ChoosePlanPage() {
             </div>
           </div>
 
-          <button className="mt-10 rounded-md bg-[#2bd97c] px-10 py-3 text-sm font-semibold text-[#032b41] hover:opacity-90">
-            Start your free 7-day trial
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="mt-10 rounded-md bg-[#2bd97c] px-10 py-3 text-sm font-semibold text-[#032b41] hover:opacity-90 disabled:opacity-60"
+          >
+            {loading
+              ? "Redirecting..."
+              : selected === "yearly"
+                ? "Start your free 7-day trial"
+                : "Continue"}
           </button>
 
           <p className="mx-auto mt-3 max-w-xl text-xs text-[#032b41]/70">
@@ -143,11 +238,13 @@ export default function ChoosePlanPage() {
           </p>
         </div>
       </section>
+
       <section className="bg-white">
         <div className="mx-auto max-w-4xl px-6 pb-20">
           <FaqAccordian items={faqs} />
         </div>
       </section>
+
       <Footer />
     </main>
   );

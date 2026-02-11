@@ -2,11 +2,12 @@
 
 import "./home.css";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ NEW
 import { AiFillBulb, AiFillAudio, AiFillFileText } from "react-icons/ai";
 import { BsStarFill, BsStarHalf } from "react-icons/bs";
 import { BiCrown } from "react-icons/bi";
 import { RiLeafLine } from "react-icons/ri";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks"; // ✅ NEW useAppSelector
 import { openAuthModal } from "@/store/slices/authSlice";
 
 const headings = [
@@ -30,8 +31,13 @@ const rightHeadings = [
 export default function Home() {
   const dispatch = useAppDispatch();
 
+  const router = useRouter(); // ✅ NEW
+  const user = useAppSelector((s) => s.auth.user); // ✅ NEW
+  const authChecked = useAppSelector((s) => s.auth.authChecked); // ✅ NEW
+
   const [activeIndex, setActiveIndex] = useState(1);
 
+  // Existing rotating headings effect
   useEffect(() => {
     const id = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % headings.length);
@@ -39,6 +45,39 @@ export default function Home() {
 
     return () => clearInterval(id);
   }, []);
+
+  // ✅ NEW: If logged in, don't show marketing homepage; go to /for-you
+  useEffect(() => {
+    if (authChecked && user) {
+      router.replace("/for-you");
+    }
+  }, [authChecked, user, router]);
+
+  // ✅ Optional: prevent a flash of homepage while auth is resolving
+  if (!authChecked) {
+    return (
+      <div className="home">
+        <nav className="nav">
+          <div className="nav__wrapper">
+            <figure className="nav__img--mask">
+              <img className="nav__img" src="/assets/logo.png" alt="logo" />
+            </figure>
+          </div>
+        </nav>
+
+        <div
+          style={{
+            display: "flex",
+            minHeight: "60vh",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="home">
@@ -90,6 +129,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       <section id="features">
         <div className="home__container">
           <div className="row">

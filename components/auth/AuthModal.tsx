@@ -7,11 +7,13 @@ import { FaUser } from "react-icons/fa";
 import Image from "next/image";
 import { guestSignIn, signIn, signUp } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function AuthModal() {
   const open = useAppSelector((s) => s.auth.authModalOpen);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +23,8 @@ export default function AuthModal() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleEmailAuth() {
+    if (loading) return;
+
     setError(null);
 
     if (!email || !password) {
@@ -36,10 +40,40 @@ export default function AuthModal() {
       } else {
         await signIn(email, password);
       }
-      router.push("/for-you");
-      dispatch(closeAuthModal()); // user set by onAuthStateChanged listener
+
+      dispatch(closeAuthModal());
+      dispatch(closeAuthModal());
+
+      if (pathname === "/") {
+        router.push("/for-you");
+      } else {
+        router.refresh();
+      }
+      // stay on the same page, but refresh UI if needed
     } catch (e: any) {
       setError(e?.message ?? "Auth failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGuest() {
+    if (loading) return;
+
+    setError(null);
+
+    try {
+      setLoading(true);
+      await guestSignIn();
+
+      dispatch(closeAuthModal());
+      if (pathname === "/") {
+        router.push("/for-you");
+      } else {
+        router.refresh();
+      } // stay on same page
+    } catch (e: any) {
+      setError(e?.message ?? "Guest login failed.");
     } finally {
       setLoading(false);
     }
@@ -81,19 +115,7 @@ export default function AuthModal() {
           {/* Guest */}
           <button
             className="relative w-full rounded bg-[#2f4f8f] py-3 font-medium text-white hover:opacity-95 disabled:opacity-60"
-            onClick={async () => {
-              setError(null);
-              try {
-                setLoading(true);
-                await guestSignIn();
-                router.push("/for-you");
-                dispatch(closeAuthModal());
-              } catch (e: any) {
-                setError(e?.message ?? "Guest login failed.");
-              } finally {
-                setLoading(false);
-              }
-            }}
+            onClick={handleGuest}
             disabled={loading}
           >
             <span className="absolute left-4 top-1/2 -translate-y-1/2">
