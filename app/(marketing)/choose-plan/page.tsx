@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import HeroImg from "@/public/assets/pricing-top.png";
 import { FileText, Sprout, Handshake } from "lucide-react";
@@ -9,7 +9,6 @@ import Footer from "@/components/marketing/Footer";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setSubscription, openAuthModal } from "@/store/slices/authSlice";
-import { useEffect } from "react";
 
 const faqs = [
   {
@@ -33,6 +32,7 @@ const faqs = [
 export default function ChoosePlanPage() {
   const [selected, setSelected] = useState<"yearly" | "monthly">("yearly");
   const [loading, setLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -41,6 +41,12 @@ export default function ChoosePlanPage() {
 
   const selectedCard = "border-[#2bd97c] bg-[#f4faf7]";
   const unselectedCard = "border-black/20 bg-[#f4faf7] hover:bg-black/[0.02]";
+
+  useEffect(() => {
+    if (user && !user.isAnonymous) {
+      setAuthMessage(null);
+    }
+  }, [user]);
 
   useEffect(() => {
     const success = searchParams.get("success");
@@ -58,9 +64,21 @@ export default function ChoosePlanPage() {
     }
   }, [searchParams, dispatch, router]);
 
+  useEffect(() => {
+    if (!authMessage) return;
+
+    const timer = setTimeout(() => {
+      setAuthMessage(null);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [authMessage]);
+
   async function handleCheckout() {
-    // Block checkout unless real user (not guest)
     if (!user || user.isAnonymous) {
+      if (!authMessage) {
+        setAuthMessage("You must create an account to subscribe.");
+      }
       dispatch(openAuthModal());
       return;
     }
@@ -168,7 +186,10 @@ export default function ChoosePlanPage() {
             <div
               role="button"
               tabIndex={0}
-              onClick={() => setSelected("yearly")}
+              onClick={() => {
+                setSelected("yearly");
+                setAuthMessage(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && setSelected("yearly")}
               className={`flex cursor-pointer items-start gap-4 rounded-lg border-2 p-6 text-left transition ${
                 selected === "yearly" ? selectedCard : unselectedCard
@@ -200,7 +221,10 @@ export default function ChoosePlanPage() {
             <div
               role="button"
               tabIndex={0}
-              onClick={() => setSelected("monthly")}
+              onClick={() => {
+                setSelected("monthly");
+                setAuthMessage(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && setSelected("monthly")}
               className={`flex cursor-pointer items-start gap-4 rounded-lg border-2 p-6 text-left transition ${
                 selected === "monthly" ? selectedCard : unselectedCard
@@ -219,11 +243,16 @@ export default function ChoosePlanPage() {
               </div>
             </div>
           </div>
+          {authMessage && (
+            <p className="mt-6 text-sm font-medium text-red-600 transition-opacity duration-300">
+              {authMessage}
+            </p>
+          )}
 
           <button
             onClick={handleCheckout}
             disabled={loading}
-            className="mt-10 rounded-md bg-[#2bd97c] px-10 py-3 text-sm font-semibold text-[#032b41] hover:opacity-90 disabled:opacity-60"
+            className="mt-6 rounded-md bg-[#2bd97c] px-10 py-3 text-sm font-semibold text-[#032b41] hover:opacity-90 disabled:opacity-60"
           >
             {loading
               ? "Redirecting..."
